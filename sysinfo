@@ -1,0 +1,392 @@
+#!/bin/bash
+
+# 网络与系统信息显示工具 - sysinfo
+# 显示网络、系统和硬件详细信息
+# 使用方法:
+#   sysinfo              # 显示所有信息
+#   sysinfo --net        # 只显示网络信息
+#   sysinfo --system     # 只显示系统和硬件信息 
+#   sysinfo --docker     # 只显示docker信息
+
+# 颜色定义
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+CYAN='\033[0;36m'
+GRAY='\033[0;90m'
+BOLD='\033[1m'
+RESET='\033[0m'
+
+# 全局变量，默认全部显示
+SHOW_NET=true
+SHOW_SYSTEM=true
+SHOW_DOCKER=true
+
+# 分隔符
+function print_separator() {
+    echo -e "${GRAY}-----------------------------------------------${RESET}"
+}
+
+# 标题
+function print_title() {
+    echo -e "\n${BOLD}${BLUE}系统与网络信息${RESET}\n"
+    print_separator
+}
+
+# 解析命令行参数
+function parse_args() {
+    # 如果有参数，先重置所有显示标志为false
+    if [ $# -gt 0 ]; then
+        SHOW_NET=false
+        SHOW_SYSTEM=false
+        SHOW_DOCKER=false
+    fi
+
+    # 解析参数
+    for arg in "$@"; do
+        case $arg in
+            --net)
+                SHOW_NET=true
+                ;;
+            --system)
+                SHOW_SYSTEM=true
+                ;;
+            --docker)
+                SHOW_DOCKER=true
+                ;;
+            --help)
+                echo "用法: $0 [选项]"
+                echo "选项:"
+                echo "  --net     只显示网络信息"
+                echo "  --system  只显示系统和硬件信息"
+                echo "  --docker  只显示Docker信息"
+                echo "  --help    显示此帮助信息"
+                echo ""
+                echo "不带参数则显示全部信息"
+                exit 0
+                ;;
+            *)
+                echo "未知参数: $arg"
+                echo "使用 --help 查看帮助信息"
+                exit 1
+                ;;
+        esac
+    done
+}
+
+# 获取系统信息
+function get_system_info() {
+    echo -e "${BOLD}${MAGENTA}系统信息:${RESET}\n"
+    
+    # 检测操作系统类型
+    if [ "$(uname)" == "Darwin" ]; then
+        # macOS
+        OS="macOS"
+        VERSION=$(sw_vers -productVersion)
+        BUILD=$(sw_vers -buildVersion)
+        echo -e "${BOLD}系统:${RESET} ${GREEN}$OS $VERSION ($BUILD)${RESET}"
+        
+        # 获取macOS型号
+        MODEL=$(system_profiler SPHardwareDataType | grep "Model Name" | awk -F': ' '{print $2}')
+        echo -e "${BOLD}型号:${RESET} ${CYAN}$MODEL${RESET}"
+    elif [ "$(uname)" == "Linux" ]; then
+        # Linux
+        if [ -f /etc/os-release ]; then
+            source /etc/os-release
+            OS=$NAME
+            VERSION=$VERSION_ID
+            echo -e "${BOLD}系统:${RESET} ${GREEN}$OS $VERSION${RESET}"
+            
+            # 检测是否为WSL
+            if grep -qi microsoft /proc/version; then
+                echo -e "${BOLD}环境:${RESET} ${CYAN}Windows Subsystem for Linux${RESET}"
+                # 获取Windows版本
+                if command -v cmd.exe &> /dev/null; then
+                    WIN_VER=$(cmd.exe /c "ver" 2>/dev/null | grep -o '10\.[0-9]*\.[0-9]*' || echo "Unknown")
+                    echo -e "${BOLD}Windows版本:${RESET} ${CYAN}$WIN_VER${RESET}"
+                fi
+            fi
+        else
+            OS="Linux"
+            echo -e "${BOLD}系统:${RESET} ${GREEN}$OS$(uname -r)${RESET}"
+        fi
+    elif [ "$(uname -o 2>/dev/null)" == "Msys" ] || [ -n "$MSYSTEM" ]; then
+        # Windows/MSYS/Git Bash
+        OS="Windows"
+        if command -v systeminfo &> /dev/null; then
+            VERSION=$(systeminfo | grep -i "OS Version:" | awk -F': ' '{print $2}')
+            echo -e "${BOLD}系统:${RESET} ${GREEN}$OS $VERSION${RESET}"
+        else
+            echo -e "${BOLD}系统:${RESET} ${GREEN}$OS${RESET}"
+        fi
+    else
+        OS="$(uname -s)"
+        echo -e "${BOLD}系统:${RESET} ${GREEN}$OS$(uname -r)${RESET}"
+    fi
+    
+    # 获取系统架构
+    ARCH=$(uname -m)
+    echo -e "${BOLD}架构:${RESET} ${CYAN}$ARCH${RESET}"
+    
+    # 获取主机名
+    HOSTNAME=$(hostname)
+    echo -e "${BOLD}主机名:${RESET} ${CYAN}$HOSTNAME${RESET}"
+    
+    # 显示运行时间
+    UPTIME=$(uptime | awk '{print $3,$4}' | sed 's/,//')
+    echo -e "${BOLD}运行时间:${RESET} ${CYAN}$UPTIME${RESET}"
+}
+
+# 获取硬件信息
+function get_hardware_info() {
+    echo -e "\n${BOLD}${YELLOW}硬件信息:${RESET}\n"
+    
+    # CPU信息
+    echo -e "${BOLD}CPU:${RESET}"
+    if [ "$(uname)" == "Darwin" ]; then
+        # macOS
+        CPU_MODEL=$(sysctl -n machdep.cpu.brand_string)
+        CPU_CORES=$(sysctl -n hw.ncpu)
+        echo -e "  ${CYAN}型号: $CPU_MODEL${RESET}"
+        echo -e "  ${CYAN}核心数: $CPU_CORES${RESET}"
+    elif [ "$(uname)" == "Linux" ]; then
+        # Linux
+        CPU_MODEL=$(grep "model name" /proc/cpuinfo | head -1 | awk -F': ' '{print $2}')
+        CPU_CORES=$(grep -c "processor" /proc/cpuinfo)
+        echo -e "  ${CYAN}型号: $CPU_MODEL${RESET}"
+        echo -e "  ${CYAN}核心数: $CPU_CORES${RESET}"
+    fi
+    
+    # 内存信息
+    echo -e "\n${BOLD}内存:${RESET}"
+    if [ "$(uname)" == "Darwin" ]; then
+        # macOS
+        MEM_TOTAL=$(sysctl -n hw.memsize | awk '{print int($1/1024/1024/1024)}')
+        MEM_USED=$(vm_stat | grep "Pages active" | awk '{print int($3*4096/1024/1024/1024)}')
+        echo -e "  ${CYAN}总内存: ${MEM_TOTAL}GB${RESET}"
+        echo -e "  ${CYAN}已使用: ${MEM_USED}GB${RESET}"
+    elif [ "$(uname)" == "Linux" ]; then
+        # Linux
+        MEM_TOTAL=$(free -h | grep "Mem:" | awk '{print $2}')
+        MEM_USED=$(free -h | grep "Mem:" | awk '{print $3}')
+        echo -e "  ${CYAN}总内存: $MEM_TOTAL${RESET}"
+        echo -e "  ${CYAN}已使用: $MEM_USED${RESET}"
+    fi
+    
+    # 显卡信息
+    echo -e "\n${BOLD}显卡:${RESET}"
+    if [ "$(uname)" == "Darwin" ]; then
+        # macOS
+        system_profiler SPDisplaysDataType | grep "Chipset Model:" | awk -F': ' '{print "  \033[0;36m" $2 "\033[0m"}'
+    elif [ "$(uname)" == "Linux" ]; then
+        # Linux
+        if command -v lspci &> /dev/null; then
+            lspci | grep -i 'vga\|3d\|2d' | awk -F': ' '{print "  \033[0;36m" $2 "\033[0m"}'
+        else
+            echo -e "  ${YELLOW}无法获取显卡信息，请安装lspci工具${RESET}"
+        fi
+    fi
+}
+
+# 获取Docker信息
+function get_docker_info() {
+    echo -e "\n${BOLD}${GREEN}Docker信息:${RESET}\n"
+    
+    if command -v docker &> /dev/null; then
+        # 检查Docker服务状态
+        if docker info &> /dev/null; then
+            DOCKER_VERSION=$(docker version --format '{{.Server.Version}}' 2>/dev/null || docker version | grep -i "version" | head -1 | awk '{print $2}')
+            
+            echo -e "${BOLD}状态:${RESET} ${GREEN}运行中${RESET}"
+            echo -e "${BOLD}版本:${RESET} ${CYAN}$DOCKER_VERSION${RESET}"
+            
+            # 尝试获取更多Docker信息
+            if docker version --format '{{.Server.APIVersion}}' &>/dev/null; then
+                # 支持格式化输出的Docker版本
+                DOCKER_API=$(docker version --format '{{.Server.APIVersion}}')
+                DOCKER_ARCH=$(docker version --format '{{.Server.Arch}}')
+                DOCKER_OS=$(docker version --format '{{.Server.Os}}')
+                
+                echo -e "${BOLD}API版本:${RESET} ${CYAN}$DOCKER_API${RESET}"
+                echo -e "${BOLD}架构:${RESET} ${CYAN}$DOCKER_ARCH${RESET}"
+                echo -e "${BOLD}操作系统:${RESET} ${CYAN}$DOCKER_OS${RESET}"
+            else
+                # 旧版Docker不支持--format
+                DOCKER_API=$(docker version | grep "API version" | head -1 | awk '{print $3}')
+                DOCKER_ARCH=$(docker version | grep "OS/Arch" | head -1 | awk '{print $2}')
+                
+                echo -e "${BOLD}API版本:${RESET} ${CYAN}$DOCKER_API${RESET}"
+                echo -e "${BOLD}架构:${RESET} ${CYAN}$DOCKER_ARCH${RESET}"
+            fi
+            
+            # 获取容器统计
+            RUNNING=$(docker ps -q | wc -l | tr -d ' ')
+            TOTAL=$(docker ps -a -q | wc -l | tr -d ' ')
+            echo -e "${BOLD}容器:${RESET} ${CYAN}运行中: $RUNNING, 总数: $TOTAL${RESET}"
+            
+            # 获取镜像统计
+            IMAGES=$(docker images -q | wc -l | tr -d ' ')
+            echo -e "${BOLD}镜像数:${RESET} ${CYAN}$IMAGES${RESET}"
+            
+            # 获取Docker架构支持信息
+            echo -e "\n${BOLD}支持的架构:${RESET}"
+            if docker buildx version &>/dev/null; then
+                docker buildx ls | grep -v "NAME" | while read line; do
+                    name=$(echo "$line" | awk '{print $1}')
+                    platforms=$(echo "$line" | grep -o 'linux/[^ ]*' | tr '\n' ', ' | sed 's/,$//')
+                    echo -e "  ${CYAN}$name: $platforms${RESET}"
+                done
+            else
+                echo -e "  ${YELLOW}无法获取架构支持信息，需要Docker Buildx功能${RESET}"
+            fi
+        else
+            echo -e "${BOLD}状态:${RESET} ${RED}未运行${RESET}"
+            echo -e "${BOLD}版本:${RESET} ${CYAN}$(docker --version | awk '{print $3}' | tr -d ',')${RESET}"
+        fi
+    else
+        echo -e "${YELLOW}Docker未安装${RESET}"
+    fi
+}
+
+# 获取本地IP地址
+function get_local_ips() {
+    echo -e "\n${BOLD}${GREEN}本地网络:${RESET}\n"
+    
+    # 判断使用哪个网络接口命令
+    if command -v ip &> /dev/null; then
+        # Linux with ip command
+        echo -e "${BOLD}IPv4 地址:${RESET}"
+        ip -4 addr | grep -v '127.0.0.1' | grep 'inet' | awk '{print "  " $NF ": " $2}' | sort | 
+            while read line; do
+                interface=$(echo $line | cut -d':' -f1)
+                ip=$(echo $line | cut -d':' -f2 | cut -d'/' -f1)
+                echo -e "  ${BOLD}$interface${RESET}: ${CYAN}$ip${RESET}"
+            done
+        
+        echo -e "\n${BOLD}IPv6 地址:${RESET}"
+        ip -6 addr | grep -v '::1' | grep 'inet6' | awk '{print "  " $NF ": " $2}' | sort |
+            while read line; do
+                interface=$(echo $line | cut -d':' -f1)
+                ip=$(echo $line | cut -d':' -f2)
+                echo -e "  ${BOLD}$interface${RESET}: ${CYAN}$ip${RESET}"
+            done
+    elif command -v ifconfig &> /dev/null; then
+        # macOS or FreeBSD
+        echo -e "${BOLD}IPv4 地址:${RESET}"
+        ifconfig | grep "inet " | grep -v 127.0.0.1 | 
+            while read line; do
+                ip=$(echo $line | awk '{print $2}')
+                interface=$(echo "$line" | awk -F: '{print $1}' | xargs)
+                echo -e "  ${BOLD}$interface${RESET}: ${CYAN}$ip${RESET}"
+            done
+            
+        echo -e "\n${BOLD}IPv6 地址:${RESET}"
+        ifconfig | grep "inet6" | grep -v "::1" | 
+            while read line; do
+                ip=$(echo $line | awk '{print $2}')
+                interface=$(echo "$line" | awk -F: '{print $1}' | xargs)
+                echo -e "  ${BOLD}$interface${RESET}: ${CYAN}$ip${RESET}"
+            done
+    else
+        echo -e "${YELLOW}无法检测网络接口，请安装 ip 或 ifconfig 命令${RESET}"
+    fi
+}
+
+# 获取公网IP
+function get_public_ip() {
+    echo -e "\n${BOLD}${MAGENTA}公网IP地址:${RESET}\n"
+    
+    # 尝试获取IPv4公网地址
+    echo -e "${BOLD}IPv4:${RESET} "
+    ipv4=$(curl -s https://api.ipify.org || curl -s https://ifconfig.me || curl -s https://icanhazip.com)
+    
+    if [ -n "$ipv4" ] && [[ $ipv4 =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo -e "  ${GREEN}$ipv4${RESET}"
+    else
+        echo -e "  ${YELLOW}不可用${RESET}"
+    fi
+    
+    # 尝试获取IPv6公网地址
+    echo -e "\n${BOLD}IPv6:${RESET} "
+    ipv6=$(curl -s -6 https://api64.ipify.org || curl -s -6 https://ifconfig.co || curl -s -6 https://icanhazip.com)
+    
+    if [ -n "$ipv6" ] && [[ $ipv6 =~ : ]]; then
+        echo -e "  ${GREEN}$ipv6${RESET}"
+    else
+        echo -e "  ${YELLOW}不可用${RESET}"
+    fi
+}
+
+# 检查网络连接状态
+function check_connectivity() {
+    echo -e "${BOLD}${BLUE}网络连接:${RESET}\n"
+    
+    if ping -c 1 -W 1 8.8.8.8 &> /dev/null; then
+        echo -e "${GREEN}✓ 互联网连接正常${RESET}"
+        local gateway=$(netstat -nr | grep default | grep -v 'UGSc' | head -1 | awk '{print $2}')
+        if [ -n "$gateway" ]; then
+            echo -e "${CYAN}→ 网关: $gateway${RESET}"
+        fi
+    else
+        echo -e "${RED}✗ 互联网连接异常${RESET}"
+    fi
+}
+
+# 显示网络信息部分
+function show_network_info() {
+    print_title
+    check_connectivity
+    print_separator
+    get_local_ips
+    print_separator
+    get_public_ip
+}
+
+# 显示系统信息部分
+function show_system_info() {
+    print_title
+    get_system_info
+    print_separator
+    get_hardware_info
+}
+
+# 显示Docker信息部分
+function show_docker_info() {
+    print_title
+    get_docker_info
+}
+
+# 主函数
+function main() {
+    # 解析命令行参数
+    parse_args "$@"
+    
+    clear
+    
+    # 根据参数显示对应信息
+    if $SHOW_NET; then
+        show_network_info
+        if $SHOW_SYSTEM || $SHOW_DOCKER; then
+            print_separator
+        fi
+    fi
+    
+    if $SHOW_SYSTEM; then
+        show_system_info
+        if $SHOW_DOCKER; then
+            print_separator
+        fi
+    fi
+    
+    if $SHOW_DOCKER; then
+        show_docker_info
+    fi
+    
+    echo -e "\n${GRAY}提示: 您可以添加此命令到 ~/.bashrc 或 ~/.zshrc 中以便随时使用${RESET}"
+    echo -e "${GRAY}使用 $0 --help 查看帮助信息${RESET}"
+}
+
+# 执行主程序
+main "$@"
