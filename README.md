@@ -109,6 +109,24 @@ brew test sysinfo
 
 ### 发布新版本
 
+#### 自动化发布（推荐）
+
+使用提供的自动化脚本：
+
+```bash
+# 发布新版本（例如 v1.0.1）
+./release.sh 1.0.1
+```
+
+这个脚本会自动：
+1. 更新 Formula 中的版本号
+2. 创建 Git 标签
+3. 推送到 GitHub
+4. 计算并更新 SHA256
+5. 测试安装
+
+#### 手动发布
+
 1. 创建新的 Git tag
 ```bash
 git tag v1.0.1
@@ -118,7 +136,7 @@ git push origin v1.0.1
 2. 更新 Formula 中的版本号和 SHA256
 ```bash
 # 计算新的 SHA256
-curl -L https://github.com/SKT-Shurima/brew-tools/archive/refs/tags/v1.0.1.tar.gz | shasum -a 256
+curl -L https://github.com/SKT-Shurima/homebrew-sysinfo/archive/refs/tags/v1.0.1.tar.gz | shasum -a 256
 ```
 
 ## 许可证
