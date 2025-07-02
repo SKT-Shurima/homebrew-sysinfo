@@ -2,7 +2,7 @@ class Sysinfo < Formula
   desc "A comprehensive system and network information tool"
   homepage "https://github.com/SKT-Shurima/homebrew-sysinfo"
   url "https://github.com/SKT-Shurima/homebrew-sysinfo/archive/refs/tags/v1.0.3.tar.gz"
-  sha256 "bebf9a9d1cf13906cdc326751f2be7893bb62c5b66a51cb6f6a22d2f8d7d4d61"
+  sha256 "ec61bfcc03e148916d604115bb07d4d710676d06ad09b74bd21552d19fb1cf5e"
   license "MIT"
   head "https://github.com/SKT-Shurima/homebrew-sysinfo.git", branch: "main"
 
