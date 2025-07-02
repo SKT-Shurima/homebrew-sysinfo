@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 版本号（自动由 release.sh 替换）
-SYSINFO_VERSION="1.0.2"
+SYSINFO_VERSION="1.0.3"
 
 # 网络与系统信息显示工具 - sysinfo
 # 显示网络、系统和硬件详细信息
