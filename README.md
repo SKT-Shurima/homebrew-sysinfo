@@ -2,6 +2,14 @@
 
 一个功能强大的系统与网络信息显示工具，支持 macOS、Linux 和 Windows (WSL/Git Bash)。
 
+## 工具用途
+
+Sysinfo 是一个跨平台的系统与网络信息显示工具，适用于：
+
+- 需要快速查看本机系统、硬件、网络、Docker 信息的开发者和运维人员
+- 需要在多平台（macOS、Linux、WSL、Git Bash）下统一体验的用户
+- 需要美观彩色终端输出和一键获取关键信息的场景
+
 ## 功能特性
 
 - 🖥️ **系统信息**: 显示操作系统、版本、架构、主机名等
@@ -13,26 +21,27 @@
 
 ## 安装方法
 
-### 通过 Homebrew 安装（推荐）
+### 推荐方式：通过 Homebrew Tap 安装
+
+适用于所有用户，无需下载源码，自动获取最新版本。
 
 ```bash
 # 添加自定义 tap
-brew tap SKT-Shurima/brew-tools
+brew tap SKT-Shurima/homebrew-sysinfo
 
 # 安装工具
 brew install sysinfo
 ```
 
-### 手动安装
+### 其他方式：手动安装
 
 ```bash
-# 克隆仓库
-git clone https://github.com/SKT-Shurima/brew-tools.git
-cd brew-tools
+# 下载源码包
+curl -L https://github.com/SKT-Shurima/homebrew-sysinfo/archive/refs/tags/v1.0.0.tar.gz | tar -xz
+cd homebrew-sysinfo-1.0.0
 
-# 安装到系统
-sudo cp sysinfo /usr/local/bin/
-sudo chmod +x /usr/local/bin/sysinfo
+# 构建并安装
+brew install --build-from-source ./sysinfo.rb
 ```
 
 ## 使用方法
