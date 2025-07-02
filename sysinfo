@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# 版本号（自动由 release.sh 替换）
+SYSINFO_VERSION="1.0.0"
+
 # 网络与系统信息显示工具 - sysinfo
 # 显示网络、系统和硬件详细信息
 # 使用方法:
@@ -69,7 +72,7 @@ function parse_args() {
                 exit 0
                 ;;
             --version)
-                echo "sysinfo v1.0.0"
+                echo "sysinfo v$SYSINFO_VERSION"
                 echo "一个功能强大的系统与网络信息显示工具"
                 echo "支持 macOS、Linux 和 Windows (WSL/Git Bash)"
                 echo ""

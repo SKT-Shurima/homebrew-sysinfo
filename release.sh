@@ -25,6 +25,12 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 # 2. 更新 Formula 中的版本号
+# 以及 sysinfo 脚本中的版本号
+
+echo "更新 sysinfo 脚本中的版本号..."
+sed -i.bak "s|^SYSINFO_VERSION=\".*\"|SYSINFO_VERSION=\"$VERSION\"|" sysinfo
+rm sysinfo.bak
+
 echo "更新 Formula 中的版本号..."
 sed -i.bak "s|url \"$REPO_URL/archive/refs/tags/v[0-9.]*\.tar\.gz\"|url \"$REPO_URL/archive/refs/tags/v$VERSION.tar.gz\"|" sysinfo.rb
 rm sysinfo.rb.bak
