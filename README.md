@@ -101,7 +101,7 @@ IPv6:
 
 ```bash
 # 测试 Homebrew formula
-brew install --build-from-source ./Formula/sysinfo.rb
+brew install --build-from-source ./sysinfo.rb
 
 # 运行测试
 brew test sysinfo
