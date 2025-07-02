@@ -63,8 +63,18 @@ function parse_args() {
                 echo "  --system  只显示系统和硬件信息"
                 echo "  --docker  只显示Docker信息"
                 echo "  --help    显示此帮助信息"
+                echo "  --version 显示版本信息"
                 echo ""
                 echo "不带参数则显示全部信息"
+                exit 0
+                ;;
+            --version)
+                echo "sysinfo v1.0.0"
+                echo "一个功能强大的系统与网络信息显示工具"
+                echo "支持 macOS、Linux 和 Windows (WSL/Git Bash)"
+                echo ""
+                echo "GitHub: https://github.com/SKT-Shurima/homebrew-sysinfo"
+                echo "License: MIT"
                 exit 0
                 ;;
             *)
