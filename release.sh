@@ -35,9 +35,9 @@ echo "更新 Formula 中的版本号..."
 sed -i.bak "s|url \"$REPO_URL/archive/refs/tags/v[0-9.]*\.tar\.gz\"|url \"$REPO_URL/archive/refs/tags/v$VERSION.tar.gz\"|" sysinfo.rb
 rm sysinfo.rb.bak
 
-# 3. 提交更改
+# 3. 提交版本更新
 echo "提交版本更新..."
-git add sysinfo.rb
+git add sysinfo sysinfo.rb
 git commit -m "准备发布 v$VERSION"
 
 # 4. 创建标签
