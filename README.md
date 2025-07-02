@@ -74,6 +74,27 @@ brew list --versions sysinfo
 
 # 查看可用的版本信息
 brew info sysinfo
+
+# 查看 sysinfo 工具版本
+sysinfo --version
+```
+
+### 更新 Tap（如果遇到版本问题）
+
+如果发现安装的不是最新版本，可以重新添加 tap：
+
+```bash
+# 卸载当前版本
+brew uninstall sysinfo
+
+# 移除旧的 tap
+brew untap SKT-Shurima/homebrew-sysinfo
+
+# 重新添加 tap
+brew tap SKT-Shurima/homebrew-sysinfo
+
+# 安装最新版本
+brew install sysinfo
 ```
 
 ## 使用方法
@@ -93,6 +114,9 @@ sysinfo --docker
 
 # 显示帮助信息
 sysinfo --help
+
+# 显示版本信息
+sysinfo --version
 ```
 
 ## 输出示例
@@ -189,6 +213,19 @@ MIT License
 欢迎提交 Issue 和 Pull Request！
 
 ## 更新日志
+
+### v1.0.3
+- 添加 `--version` 参数支持，显示版本信息
+- 完善自动化发布流程
+- 优化项目结构和文档
+
+### v1.0.2
+- 修复版本号同步问题
+- 完善发布脚本逻辑
+
+### v1.0.1
+- 调整项目结构，将 Formula 文件移到根目录
+- 添加自动化发布脚本
 
 ### v1.0.0
 - 初始版本发布
