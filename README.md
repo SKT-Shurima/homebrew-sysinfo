@@ -44,6 +44,38 @@ cd homebrew-sysinfo-1.0.0
 brew install --build-from-source ./sysinfo.rb
 ```
 
+## 更新方法
+
+### 通过 Homebrew 更新（推荐）
+
+```bash
+# 更新 Homebrew 和所有已安装的包
+brew update
+
+# 升级 sysinfo 到最新版本
+brew upgrade sysinfo
+```
+
+### 手动更新
+
+```bash
+# 卸载旧版本
+brew uninstall sysinfo
+
+# 重新安装最新版本
+brew install sysinfo
+```
+
+### 检查当前版本
+
+```bash
+# 查看已安装的版本
+brew list --versions sysinfo
+
+# 查看可用的版本信息
+brew info sysinfo
+```
+
 ## 使用方法
 
 ```bash
