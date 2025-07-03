@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 版本号（自动由 release.sh 替换）
-SYSINFO_VERSION="1.0.3"
+SYSINFO_VERSION="1.0.4"
 
 # 网络与系统信息显示工具 - sysinfo
 # 显示网络、系统和硬件详细信息
@@ -11,14 +11,16 @@ SYSINFO_VERSION="1.0.3"
 #   sysinfo --system     # 只显示系统和硬件信息 
 #   sysinfo --docker     # 只显示docker信息
 
-# 颜色定义
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-MAGENTA='\033[0;35m'
-CYAN='\033[0;36m'
-GRAY='\033[0;90m'
+# 颜色定义 - One Dark 主题配色方案
+# 主要颜色
+RED='\033[38;5;168m'      # #e06c75 - 红色
+GREEN='\033[38;5;108m'    # #98c379 - 绿色
+YELLOW='\033[38;5;180m'   # #e5c07b - 黄色
+BLUE='\033[38;5;74m'      # #61afef - 蓝色
+MAGENTA='\033[38;5;176m'  # #c678dd - 紫色
+CYAN='\033[38;5;73m'      # #56b6c2 - 青色
+GRAY='\033[38;5;145m'     # #abb2bf - 浅灰色
+DARK_GRAY='\033[38;5;59m' # #5c6370 - 深灰色
 BOLD='\033[1m'
 RESET='\033[0m'
 
@@ -29,7 +31,7 @@ SHOW_DOCKER=true
 
 # 分隔符
 function print_separator() {
-    echo -e "${GRAY}-----------------------------------------------${RESET}"
+    echo -e "${DARK_GRAY}-----------------------------------------------${RESET}"
 }
 
 # 标题
@@ -397,8 +399,8 @@ function main() {
         show_docker_info
     fi
     
-    echo -e "\n${GRAY}提示: 您可以添加此命令到 ~/.bashrc 或 ~/.zshrc 中以便随时使用${RESET}"
-    echo -e "${GRAY}使用 $0 --help 查看帮助信息${RESET}"
+    echo -e "\n${DARK_GRAY}提示: 您可以添加此命令到 ~/.bashrc 或 ~/.zshrc 中以便随时使用${RESET}"
+    echo -e "${DARK_GRAY}使用 $0 --help 查看帮助信息${RESET}"
 }
 
 # 执行主程序
